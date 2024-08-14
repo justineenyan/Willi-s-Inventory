@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { TextField, Button, MenuItem, Grid, Typography, Box, Divider } from '@mui/material';
 import usePantry from '../hooks/usePantry';
 
-const PantryForm = ({ currentItem, onClose }) => {
+const PantryForm = ({ currentItem, onClose, handleEdit }) => {
   const [name, setName] = useState(currentItem?.name || '');
   const [quantity, setQuantity] = useState(currentItem?.quantity || '');
   const [category, setCategory] = useState(currentItem?.category || '');
@@ -12,7 +12,7 @@ const PantryForm = ({ currentItem, onClose }) => {
   const [filterDate, setFilterDate] = useState('');
   const [filteredItems, setFilteredItems] = useState({});
 
-  const { items, addItem, updateItem } = usePantry();
+  const { items, addItem, updateItem, deleteItem } = usePantry();
 
   useEffect(() => {
     const applyFilters = () => {
@@ -40,18 +40,23 @@ const PantryForm = ({ currentItem, onClose }) => {
     e.preventDefault();
     const item = { name, quantity, category, expiryDate };
     if (currentItem) {
-      await updateItem(currentItem.id, item);
+      await updateItem(currentItem.id, item); // Update item if currentItem is provided
     } else {
-      await addItem(item);
+      await addItem(item); // Add new item if currentItem is not provided
     }
     onClose();
   };
 
+  const handleDelete = async (id) => {
+    await deleteItem(id);
+    onClose(); // Optionally close the form after deletion
+  };
+
   return (
-    <Grid container spacing={2}>
+    <Grid container spacing={2} style={{ padding: '20px' }}>
       <Grid item xs={12} md={6}>
         <form onSubmit={handleSubmit} style={{ padding: '20px', backgroundColor: '#F8F9FA', borderRadius: '8px', boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)' }}>
-          <Typography variant="h6" gutterBottom>Add or Update Item</Typography>
+          <Typography variant="h6" gutterBottom>{currentItem ? 'Edit Item' : 'Add Item'}</Typography>
           <TextField
             label="Name"
             value={name}
@@ -98,9 +103,26 @@ const PantryForm = ({ currentItem, onClose }) => {
             InputLabelProps={{ shrink: true }}
             color="primary"
           />
-          <Button type="submit" variant="contained" color="primary" style={{ marginTop: '20px' }}>
-            {currentItem ? 'Update' : 'Add'} Item
-          </Button>
+          <Box display="flex" justifyContent="flex-end" gap={2} marginTop={2}>
+            {currentItem ? (
+              <>
+                <Button type="submit" variant="contained" color="primary">
+                  Update Item
+                </Button>
+                <Button 
+                  onClick={() => handleDelete(currentItem.id)} 
+                  variant="contained" 
+                  color="secondary"
+                >
+                  Delete Item
+                </Button>
+              </>
+            ) : (
+              <Button type="submit" variant="contained" color="primary">
+                Add Item
+              </Button>
+            )}
+          </Box>
         </form>
       </Grid>
       <Grid item xs={12} md={6}>
@@ -119,9 +141,7 @@ const PantryForm = ({ currentItem, onClose }) => {
           <MenuItem value="Fruits">Fruits</MenuItem>
           <MenuItem value="Vegetables">Vegetables</MenuItem>
           <MenuItem value="Grains/Legumes">Grains/Legumes</MenuItem>
-          <MenuItem value= "groceries">groceries</MenuItem>
-          <MenuItem value = "Utensils">Utensils</MenuItem>
-          <MenuItem value="sweets">sweets</MenuItem>
+          <MenuItem value="Groceries">Groceries</MenuItem>
         </TextField>
         <TextField
           label="Filter by Expiry Date"
@@ -151,18 +171,43 @@ const PantryForm = ({ currentItem, onClose }) => {
                     bgcolor="white"
                     transition="transform 0.2s ease-in-out"
                     sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      height: '230px', // Adjusted height for better space management
                       '&:hover': {
                         transform: 'scale(1.02)',
                         boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.2)',
                       }
                     }}
                   >
-                    <Typography variant="body1" fontWeight="bold">Name:</Typography>
-                    <Typography variant="body1" marginBottom={1}>{item.name}</Typography>
-                    <Typography variant="body1" fontWeight="bold">Quantity:</Typography>
-                    <Typography variant="body1" marginBottom={1}>{item.quantity}</Typography>
-                    <Typography variant="body1" fontWeight="bold">Expiry Date:</Typography>
-                    <Typography variant="body1">{item.expiryDate}</Typography>
+                    <Box flexGrow={1}>
+                      <Typography variant="body1" fontWeight="bold">Name:</Typography>
+                      <Typography variant="body1" marginBottom={1}>{item.name}</Typography>
+                      <Typography variant="body1" fontWeight="bold">Quantity:</Typography>
+                      <Typography variant="body1" marginBottom={1}>{item.quantity}</Typography>
+                      <Typography variant="body1" fontWeight="bold">Expiry Date:</Typography>
+                      <Typography variant="body1">{item.expiryDate}</Typography>
+                    </Box>
+                    <Box display="flex" justifyContent="space-between" marginTop={2}>
+                    <Button 
+                        onClick={() => handleEdit(item)} 
+                        variant="contained" 
+                        color="primary"
+                        style={{ flex: 1 }}
+                      >
+                        Update
+                      </Button>
+
+                      <Button 
+                        onClick={() => handleDelete(item.id)} 
+                        variant="contained" 
+                        color="secondary"
+                        style={{ flex: 1 }}
+                      >
+                        Delete
+                      </Button>
+                    </Box>
                   </Box>
                 ))}
               </Box>
@@ -172,6 +217,7 @@ const PantryForm = ({ currentItem, onClose }) => {
         </Box>
       </Grid>
     </Grid>
+    
   );
 };
 

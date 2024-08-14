@@ -1,11 +1,10 @@
-'use client'; 
-import { Button, Card, CardContent, Typography, Grid } from '@mui/material';
-import usePantry from '../hooks/usePantry';
-import PantryForm from './pantryForm';
 import { useState } from 'react';
+import { Grid, Button, Typography, Card, CardContent } from '@mui/material';
+import PantryForm from './PantryForm';
+import usePantry from '../hooks/usePantry';
 
 const PantryList = () => {
-  const { items, deleteItem } = usePantry();
+  const { items, addItem, updateItem, deleteItem } = usePantry();
   const [currentItem, setCurrentItem] = useState(null);
   const [showForm, setShowForm] = useState(false);
 
@@ -14,39 +13,62 @@ const PantryList = () => {
     setShowForm(true);
   };
 
-  const handleDelete = async (id) => {
-    await deleteItem(id);
+  const handleCloseForm = () => {
+    setCurrentItem(null);
+    setShowForm(false);
   };
 
   return (
-    <div>
-      <Button onClick={() => { setShowForm(true); setCurrentItem(null); }} variant="contained" color="primary" style={{ marginBottom: '20px'}}>
-        Add New Item
-      </Button>
-      {showForm && (
-        <PantryForm currentItem={currentItem} onClose={() => setShowForm(false)} />
-      )}
-      <Grid container spacing={2}>
-        {items.map(item => (
-          <Grid item xs={12} sm={6} md={4} key={item.id}>
-            <Card>
-              <CardContent>
-                <Typography variant="h5">{item.name}</Typography>
-                <Typography>Quantity: {item.quantity}</Typography>
-                <Typography>Category: {item.category}</Typography>
-                <Typography>Expiry Date: {item.expiryDate}</Typography>
-                <Button onClick={() => handleEdit(item)} variant="contained" color="primary" style={{ backgroundColor: 'black'}}>
-                  Edit
-                </Button>
-                <Button onClick={() => handleDelete(item.id)} variant="contained" color="secondary">
-                  Delete
-                </Button>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
+    <Grid container spacing={2}>
+      <Grid item xs={12}>
+        <Typography variant="h4" gutterBottom>Pantry Items</Typography>
+        <Button variant="contained" color="primary" onClick={() => setShowForm(true)}>Add New Item</Button>
       </Grid>
-    </div>
+      <Grid item xs={12}>
+        <Grid container spacing={2}>
+          {items.map((item) => (
+            <Grid item xs={12} sm={6} md={4} key={item.id}>
+              <Card>
+                <CardContent>
+                  <Typography variant="h6">{item.name}</Typography>
+                  <Typography variant="body2">Quantity: {item.quantity}</Typography>
+                  <Typography variant="body2">Expiry Date: {item.expiryDate}</Typography>
+                  <Box display="flex" justifyContent="space-between" marginTop={2}>
+                    <Button 
+                      onClick={() => handleEdit(item)} 
+                      variant="contained" 
+                      color="primary"
+                      style={{ flex: 1 }}
+                    >
+                      Edit
+                    </Button>
+                    <Button 
+                      onClick={() => updateItem(item.id, item)} // Update functionality added here
+                      variant="contained" 
+                      color="secondary"
+                      style={{ flex: 1 }}
+                    >
+                      Update
+                    </Button>
+                  </Box>
+                  <Button 
+                    onClick={() => deleteItem(item.id)} 
+                    variant="contained" 
+                    color="error"
+                    style={{ marginTop: '3px' }}
+                  >
+                    Delete
+                  </Button>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Grid>
+      {showForm && (
+        <PantryForm currentItem={currentItem} onClose={handleCloseForm} handleEdit={handleEdit} />
+      )}
+    </Grid>
   );
 };
 
